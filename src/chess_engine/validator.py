@@ -91,10 +91,12 @@ def is_promotion(move: Move) -> bool:
 # ---- castling -----------------------------------------------------------------------------
 
 def has_castling_right(board: Board, color: Color, king_side: bool) -> bool:
-    """True while that king and that rook have both never moved."""
+    """True while that king and that rook have both never moved and stand on their starting squares."""
+    king = board.king(color)
     rook = board.piece_at((color.back_row, 7 if king_side else 0))
     return (
-        not board.king(color).has_moved
+        king.square == (color.back_row, 4)
+        and not king.has_moved
         and isinstance(rook, Rook)
         and rook.color == color
         and not rook.has_moved

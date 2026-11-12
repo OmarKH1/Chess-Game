@@ -77,7 +77,13 @@ class Board:
         return [piece for piece in self.pieces_of(color) if piece.attacks(self, target)]
 
     def is_path_clear(self, start: Square, end: Square) -> bool:
-        """True when every square strictly between start and end is empty."""
+        """True when every square strictly between start and end is empty.
+
+        start and end must share a rank, file or diagonal.
+        """
+        rows, cols = abs(end[0] - start[0]), abs(end[1] - start[1])
+        if not (rows == 0 or cols == 0 or rows == cols):
+            raise ValueError(f"{start} and {end} are not on one line")
         step_row = (end[0] > start[0]) - (end[0] < start[0])
         step_col = (end[1] > start[1]) - (end[1] < start[1])
         row, col = start[0] + step_row, start[1] + step_col

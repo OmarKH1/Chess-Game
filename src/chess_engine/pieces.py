@@ -36,7 +36,7 @@ class Rook(Piece):
 
     def attacks(self, board: Board, target: Square) -> bool:
         rows, cols = distance(self.square, target)
-        return (rows == 0 or cols == 0) and board.is_path_clear(self.square, target)
+        return target != self.square and (rows == 0 or cols == 0) and board.is_path_clear(self.square, target)
 
 
 class Bishop(Piece):
@@ -44,7 +44,7 @@ class Bishop(Piece):
 
     def attacks(self, board: Board, target: Square) -> bool:
         rows, cols = distance(self.square, target)
-        return rows == cols and board.is_path_clear(self.square, target)
+        return target != self.square and rows == cols and board.is_path_clear(self.square, target)
 
 
 class Queen(Piece):
@@ -52,7 +52,8 @@ class Queen(Piece):
 
     def attacks(self, board: Board, target: Square) -> bool:
         rows, cols = distance(self.square, target)
-        return (rows == 0 or cols == 0 or rows == cols) and board.is_path_clear(self.square, target)
+        on_line = rows == 0 or cols == 0 or rows == cols
+        return target != self.square and on_line and board.is_path_clear(self.square, target)
 
 
 class Knight(Piece):

@@ -5,7 +5,7 @@ from enum import Enum
 
 from . import validator
 from .board import Board, Move
-from .constants import ALL_SQUARES, FILES, Color, PieceType
+from .constants import ALL_SQUARES, FILES, PROMOTION_TYPES, Color, PieceType
 from .notation import TypedMove, parse_move
 from .pieces import Pawn, Piece, create_piece
 from .validator import IllegalMoveError
@@ -47,17 +47,20 @@ class PlayedMove:
 class Game:
     """One game: the position, whose turn it is, the history and everything the rules must remember."""
 
-    def __init__(self) -> None:
-        self.board = Board()
-        self.turn = Color.WHITE
+    def __init__(self, board: Board | None = None, turn: Color = Color.WHITE) -> None:
+        """A new game from the starting position, or from a custom board with `turn` to move."""
+        self.board = board if board is not None else Board()
+        self.turn = turn
         self.status = GameStatus.ONGOING
         self.winner: Color | None = None
-        self.check_count = 0                       # attackers of the king to move; 2 = double check
+        self.check_count = validator.check_count(self.board, turn)  # 2 = double check
         self.history: list[PlayedMove] = []
         self.captured: list[Piece] = []
         self.en_passant_pawn: Piece | None = None  # the pawn that just moved two squares
         self.moves_without_progress = 0            # since the last pawn move or capture
-        self.position_counts: dict[str, int] = {self.position_key(): 1}
+        position = self.position_key()
+        self.position_counts: dict[str, int] = {position: 1}
+        self._update_status(position)
 
     @property
     def is_over(self) -> bool:
@@ -84,7 +87,9 @@ class Game:
         if validator.is_promotion(move):
             if not promotion:
                 raise ValueError("a promotion needs a piece: Q, R, B or N")
-            promotion_type = PieceType(promotion) if isinstance(promotion, str) else promotion
+            promotion_type = PieceType(promotion.upper()) if isinstance(promotion, str) else promotion
+            if promotion_type not in PROMOTION_TYPES:
+                raise ValueError(f"a pawn cannot promote to {promotion_type.name.lower()}")
 
         self.board.apply(move)
         piece.has_moved = True
